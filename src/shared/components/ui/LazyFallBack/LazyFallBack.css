@@ -1,0 +1,15 @@
+.wave_fade {
+  animation: fade 1s infinite ease-in-out;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}

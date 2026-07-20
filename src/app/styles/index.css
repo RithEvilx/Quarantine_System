@@ -1,0 +1,64 @@
+/* ─── 1. Font Definitions ─── */
+@font-face {
+  font-family: "Inter";
+  src: url("../../shared/assets/fonts/inter/Inter-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "KantumruyPro";
+  src: url("../../shared/assets/fonts/kantumruy_pro/KantumruyPro-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* ─── 2. Layout Root Reset ─── */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* ─── 3. Global Scrollbar (Matched to your theme) ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #e4e4e9; /* Using the neutral.100 hue from your theme image */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #a9a9b8; /* Using the neutral.300 hue */
+  border-radius: 24px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7e7e94; /* Using the neutral.400 hue */
+}
+
+/* ─── 4. Print Configurations ─── */
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+}
