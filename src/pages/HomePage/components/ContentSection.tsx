@@ -168,7 +168,7 @@ const ContentSection = () => {
       <SimpleGrid columns={12} gap={4} height={{ base: "100%", md: "calc(100dvh - 200px)" }} overflow="auto">
         {Array.from({ length: 10 }).map((_, index) => (
           <GridItem colSpan={{ base: 12, md: 6, lg: 3 }} key={index}>
-            <Stack rounded="2xl" bgColor="theme.bg" padding={3} height={{ base: "300px", md: "280px", lg: "300px" }}>
+            <Stack rounded="2xl" bgColor="theme.bg" padding={3} height={{ base: "300px", md: "280px", lg: "310px" }}>
               {/* Image */}
               <Box width="full" height="70%">
                 <Image
@@ -184,7 +184,7 @@ const ContentSection = () => {
               {/* Content */}
               <VStack alignItems="flex-start" paddingInline="0.25rem" justifyContent="space-between" height="30%">
                 {/* Name */}
-                <Heading lineClamp={1} fontSize={{ base: "sm", md: "md", lg: "xl" }}>
+                <Heading lineClamp={2} fontSize={{ base: "sm", md: "md" }} lineHeight={1.25}>
                   Vital (500ml)
                 </Heading>
                 <HStack width="full" justifyContent="space-between" alignItems="flex-end">
