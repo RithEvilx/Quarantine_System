@@ -84,7 +84,7 @@ const CartSection = () => {
           ))}
         </VStack>
         <VStack width="full" gap={4}>
-          {/* Booking Summary */}
+          {/* Customer Detail + Grand Total */}
           <VStack
             bg="pink"
             width="full"
@@ -101,9 +101,15 @@ const CartSection = () => {
                   <RadioCard.Label fontWeight="semibold">Choose way to pay:</RadioCard.Label>
                   <HStack align="stretch">
                     {items.map((item) => (
-                      <RadioCard.Item key={item.value} value={item.value} cursor="pointer" bgColor="theme.bg">
+                      <RadioCard.Item
+                        key={item.value}
+                        value={item.value}
+                        cursor="pointer"
+                        bgColor="theme.bg"
+                        _checked={{ border: "1px solid", borderColor: "theme.borderSubtle" }}
+                      >
                         <RadioCard.ItemHiddenInput />
-                        <RadioCard.ItemControl _checked={{ borderColor: "theme.primary" }}>
+                        <RadioCard.ItemControl>
                           <RadioCard.ItemText padding="0.15rem 0.5rem" fontSize="sm" whiteSpace="nowrap">
                             {item.title}
                           </RadioCard.ItemText>
@@ -118,12 +124,13 @@ const CartSection = () => {
                 type="text"
                 placeholder="Please enter your name*"
                 paddingInline="0.75rem"
-                rounded="0.75rem"
+                rounded="0.5rem"
                 bgColor="theme.bg"
                 _focus={{ border: "1px solid", borderColor: "theme.borderSubtle" }}
               />
             </VStack>
             <Box border="1px solid" borderColor="theme.border" width="full" marginBlock="0.5rem"></Box>
+            {/* Grand Total */}
             <HStack width="full" justifyContent="space-between" color="theme.text" fontWeight="semibold">
               <Text>Total</Text>
               <Text>$10.96</Text>
