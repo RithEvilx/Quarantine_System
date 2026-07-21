@@ -28,7 +28,7 @@ const CartSection = () => {
       <Heading>Current Order</Heading>
       <VStack justifyContent="space-between" height="full">
         {/* List Order */}
-        <VStack width="full" height="calc(100dvh - 350px)" gap={3} alignItems="flex-start" overflow="auto">
+        <VStack width="full" height={{md: "calc(100dvh - 370px)",lg: "calc(100dvh - 350px)"}} gap={3} alignItems="flex-start" overflow="auto">
           {Array.from({ length: 10 }).map((_, index) => (
             <HStack
               width="full"
@@ -94,10 +94,10 @@ const CartSection = () => {
             rounded="xl"
           >
             {/* Customer Detail */}
-            <VStack width="full" gap={4}>
+            <VStack width="full" gap={{ base: 3, lg: 4 }}>
               {/* Way to Pay */}
               <RadioCard.Root defaultValue="next" width="full">
-                <HStack width="full" alignItems="flex-end">
+                <Stack direction={{ base: "column", lg: "row" }} width="full" alignItems={{ lg: "flex-end" }}>
                   <RadioCard.Label fontWeight="semibold">Choose way to pay:</RadioCard.Label>
                   <HStack align="stretch">
                     {items.map((item) => (
@@ -117,7 +117,7 @@ const CartSection = () => {
                       </RadioCard.Item>
                     ))}
                   </HStack>
-                </HStack>
+                </Stack>
               </RadioCard.Root>
               {/* Customer Name  */}
               <Input

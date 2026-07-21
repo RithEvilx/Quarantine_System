@@ -24,8 +24,8 @@ const LazyFallback = () => {
           direction={{ base: "column", md: "row" }}
           alignItems="center"
           justifyContent="center"
-          fontSize="4rem"
-          gap={6}
+          fontSize={{ base: "2rem", md: "3rem", lg: "4rem" }}
+          gap={{ base: 3, md: 6 }}
           className="wave_fade"
         >
           <LuEarthLock /> <Text>Quarantine System</Text>
