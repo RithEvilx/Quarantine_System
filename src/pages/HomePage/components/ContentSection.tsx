@@ -187,10 +187,10 @@ const ContentSection = () => {
                 <Heading lineClamp={1} fontSize={{ base: "sm", md: "md", lg: "xl" }}>
                   Vital (500ml)
                 </Heading>
-                <HStack width="full" justifyContent="space-between" alignItems='flex-end'>
+                <HStack width="full" justifyContent="space-between" alignItems="flex-end">
                   {/* Price */}
                   <Text fontWeight="semibold" color="theme.error">
-                    $10.95
+                    $0.25
                   </Text>
                   {/* Add to Cart */}
                   <IconButton bgColor="theme.primary" color="theme.textOnPrimary" rounded="full" size="xs">
