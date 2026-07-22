@@ -1,6 +1,7 @@
 import React from "react";
-import { Box, Heading, Text, VStack, HStack, Container, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import { Box, Heading, Text, VStack, HStack, Container, Button } from "@chakra-ui/react";
+// Icon
 import { LuArrowLeft } from "react-icons/lu";
 
 const ComingSoon: React.FC = () => {

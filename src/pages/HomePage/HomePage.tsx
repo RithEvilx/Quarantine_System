@@ -1,4 +1,5 @@
 import { GridItem, SimpleGrid } from "@chakra-ui/react";
+// Components
 import CartSection from "./components/CartSection";
 import ContentSection from "./components/ContentSection";
 

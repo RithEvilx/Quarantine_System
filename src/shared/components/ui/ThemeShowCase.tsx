@@ -1,8 +1,8 @@
-// ThemeShowCase.tsx
+import { Link } from "react-router-dom";
 import { ColorModeButton } from "@/app/providers/color-mode";
 import { Box, Button, Flex, Grid, GridItem, Text, Badge, HStack } from "@chakra-ui/react";
+// Icons
 import { LuBus, LuSearch, LuStar, LuCheck, LuInfo, LuTriangleAlert, LuX } from "react-icons/lu";
-import { Link } from "react-router-dom";
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Box mb={8}>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -15,11 +16,14 @@ import {
   InputGroup,
 } from "@chakra-ui/react";
 // Icons
-import { LuChevronLeft, LuChevronRight, LuEarthLock, LuPlus, LuSearch, LuSettings } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight, LuEarthLock, LuPlus, LuSearch } from "react-icons/lu";
+// Component
+import SettingComponent from "@/shared/components/ui/SettingComponent";
 // Constant
 import { fallBackImage } from "@/app/configs/app";
 
 const ContentSection = () => {
+  const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Track whether buttons should be disabled
@@ -79,7 +83,7 @@ const ContentSection = () => {
             <Box fontSize="2.25rem">
               <LuEarthLock />
             </Box>
-            Quarantine System
+            {t("Quarantine System")}
           </HStack>
         </Heading>
         {/* Search Section */}
@@ -99,10 +103,8 @@ const ContentSection = () => {
               _focus={{ border: "1px solid", borderColor: "theme.borderSubtle" }}
             />
           </InputGroup>
-          {/* Filter Button */}
-          <IconButton variant="subtle" border="1px solid" borderColor="theme.borderSubtle">
-            <LuSettings />
-          </IconButton>
+          {/* Setting Button */}
+          <SettingComponent />
         </HStack>
       </Stack>
 

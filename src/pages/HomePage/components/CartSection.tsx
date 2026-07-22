@@ -1,18 +1,20 @@
-import { fallBackImage } from "@/app/configs/app";
 import {
   Box,
-  Button,
-  Heading,
-  HStack,
-  IconButton,
+  Text,
   Image,
   Input,
-  RadioCard,
   Stack,
-  Text,
+  Button,
+  HStack,
   VStack,
+  Heading,
+  RadioCard,
+  IconButton,
 } from "@chakra-ui/react";
+// Icons
 import { LuMinus, LuPlus } from "react-icons/lu";
+// Constant
+import { fallBackImage } from "@/app/configs/app";
 
 const CartSection = () => {
   return (
@@ -28,7 +30,13 @@ const CartSection = () => {
       <Heading>Current Order</Heading>
       <VStack justifyContent="space-between" height="full">
         {/* List Order */}
-        <VStack width="full" height={{md: "calc(100dvh - 370px)",lg: "calc(100dvh - 350px)"}} gap={3} alignItems="flex-start" overflow="auto">
+        <VStack
+          width="full"
+          height={{ md: "calc(100dvh - 370px)", lg: "calc(100dvh - 350px)" }}
+          gap={3}
+          alignItems="flex-start"
+          overflow="auto"
+        >
           {Array.from({ length: 10 }).map((_, index) => (
             <HStack
               width="full"
