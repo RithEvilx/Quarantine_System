@@ -1,4 +1,4 @@
-import { APP_HELPER, APP_NAME } from "@/app/configs/app";
+import { APP_SECRET, APP_NAME } from "@/app/configs/app";
 import cryptoJs from "crypto-js";
 import Cookies from "js-cookie";
 
@@ -58,21 +58,21 @@ export const generated_cookie = generateCookieName();
 export const cookies = {
   get_token: (): string | null => {
     const access_token = Cookies.get(generated_cookie.access_token);
-    return access_token ? safeDecrypt(access_token, APP_HELPER) : null; // 3) use safe decrypt
+    return access_token ? safeDecrypt(access_token, APP_SECRET) : null; // 3) use safe decrypt
   },
   get_refresh_token: (): string | null => {
     const refresh_token = Cookies.get(generated_cookie.refresh_token);
-    return refresh_token ? safeDecrypt(refresh_token, APP_HELPER) : null; // 3) use safe decrypt
+    return refresh_token ? safeDecrypt(refresh_token, APP_SECRET) : null; // 3) use safe decrypt
   },
   set_token: (access_token: string, refresh_token: string): void => {
     // Clear first to avoid “half state”, then set with global path
     Cookies.remove(generated_cookie.access_token, COOKIE_OPTS);
     Cookies.remove(generated_cookie.refresh_token, COOKIE_OPTS);
 
-    Cookies.set(generated_cookie.access_token, cryptoJs.AES.encrypt(access_token, APP_HELPER).toString(), COOKIE_OPTS);
+    Cookies.set(generated_cookie.access_token, cryptoJs.AES.encrypt(access_token, APP_SECRET).toString(), COOKIE_OPTS);
     Cookies.set(
       generated_cookie.refresh_token,
-      cryptoJs.AES.encrypt(refresh_token, APP_HELPER).toString(),
+      cryptoJs.AES.encrypt(refresh_token, APP_SECRET).toString(),
       COOKIE_OPTS,
     );
   },

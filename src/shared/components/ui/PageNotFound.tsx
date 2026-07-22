@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Flex, HStack, Image, Text, VStack } from "@chakra-ui/react";
 // Image
-import NotFound from "/imgs/fallback_image.webp";
+import NotFound from "/imgs/not_found.png";
 
 const PageNotFound = () => {
   const { t } = useTranslation();
