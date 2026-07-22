@@ -1,11 +1,5 @@
 /* ─── 1. Font Definitions ─── */
 @font-face {
-  font-family: "Inter";
-  src: url("../../shared/assets/fonts/inter/Inter-Regular.ttf") format("truetype");
-  font-display: swap;
-}
-
-@font-face {
   font-family: "KantumruyPro";
   src: url("../../shared/assets/fonts/kantumruy_pro/KantumruyPro-Regular.ttf") format("truetype");
   font-display: swap;
@@ -16,10 +10,7 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-}
-
-body {
-  font-family: "Inter", "KantumruyPro", Arial, Helvetica, sans-serif;
+  font-family: "KantumruyPro", Arial, Helvetica, sans-serif;
 }
 
 html {

@@ -30,7 +30,7 @@ const CartSection = () => {
       padding={{ base: "1rem", md: "0.5rem 1rem 1rem" }}
       gap={{ base: 3, md: 4 }}
     >
-      <Heading fontFamily="KantumruyPro">{t("Current Order")}</Heading>
+      <Heading>{t("Current Order")}</Heading>
       <VStack justifyContent="space-between" height="full">
         {/* List Order */}
         <VStack
