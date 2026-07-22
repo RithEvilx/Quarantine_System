@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Box,
   Text,
@@ -17,6 +18,8 @@ import { LuMinus, LuPlus } from "react-icons/lu";
 import { fallBackImage } from "@/app/configs/app";
 
 const CartSection = () => {
+  const { t } = useTranslation();
+
   return (
     <Stack
       height="full"
@@ -27,7 +30,7 @@ const CartSection = () => {
       padding={{ base: "1rem", md: "0.5rem 1rem 1rem" }}
       gap={{ base: 3, md: 4 }}
     >
-      <Heading>Current Order</Heading>
+      <Heading fontFamily="KantumruyPro">{t("Current Order")}</Heading>
       <VStack justifyContent="space-between" height="full">
         {/* List Order */}
         <VStack
@@ -106,7 +109,7 @@ const CartSection = () => {
               {/* Way to Pay */}
               <RadioCard.Root defaultValue="next" width="full">
                 <Stack direction={{ base: "column", lg: "row" }} width="full" alignItems={{ lg: "flex-end" }}>
-                  <RadioCard.Label fontWeight="semibold">Choose way to pay:</RadioCard.Label>
+                  <RadioCard.Label fontWeight="semibold">{t("Choose way to pay")}:</RadioCard.Label>
                   <HStack align="stretch">
                     {items.map((item) => (
                       <RadioCard.Item
@@ -140,14 +143,14 @@ const CartSection = () => {
             <Box border="1px solid" borderColor="theme.border" width="full" marginBlock="0.5rem"></Box>
             {/* Grand Total */}
             <HStack width="full" justifyContent="space-between" color="theme.text" fontWeight="semibold">
-              <Text>Total</Text>
+              <Text>{t("Total")}</Text>
               <Text>$10.96</Text>
             </HStack>
           </VStack>
 
           {/* Payment Button */}
           <Button width="full" rounded="full" bgColor="theme.primary">
-            Continue Payment
+            {t("Continue Payment")}
           </Button>
         </VStack>
       </VStack>

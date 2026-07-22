@@ -18,6 +18,10 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family: "Inter", "KantumruyPro", Arial, Helvetica, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }

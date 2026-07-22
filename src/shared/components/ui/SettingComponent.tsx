@@ -38,7 +38,7 @@ const SettingComponent = () => {
                     borderRadius="md"
                     border="1px solid"
                     borderColor={colorMode === mode ? "theme.primary" : "theme.borderSubtle"}
-                    bg={colorMode === mode ? "theme.primary/10" : "transparent"}
+                    bgColor={colorMode === mode ? "theme.primary/10" : "transparent"}
                     color={colorMode === mode ? "theme.primary" : "fg.default"}
                     cursor="pointer"
                     onClick={() => setColorMode(mode)}
@@ -66,8 +66,8 @@ const SettingComponent = () => {
                     py="1.5"
                     borderRadius="md"
                     cursor="pointer"
-                    bg={i18n.language === lng.value ? "theme.primary/10" : "transparent"}
-                    _hover={{ bg: i18n.language === lng.value ? "theme.primary/10" : "bg.muted" }}
+                    bgColor={i18n.language === lng.value ? "theme.primary/10" : "transparent"}
+                    _hover={{ bgColor: i18n.language === lng.value ? "theme.primary/10" : "bg.muted" }}
                     onClick={() => i18n.changeLanguage(lng.value)}
                   >
                     <HStack gap="2">
