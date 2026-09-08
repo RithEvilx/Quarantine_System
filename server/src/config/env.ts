@@ -28,6 +28,7 @@ export const env = {
   abaSession: process.env.ABA_SESSION || "",
   abaNotificationChatId: process.env.ABA_NOTIFICATION_CHAT_ID || "-1003709094404",
   abaPaymentBotUsername: process.env.ABA_PAYMENT_BOT_USERNAME || "PayWayByABA_bot",
+  abaPaymentBotId: process.env.ABA_PAYMENT_BOT_ID || "1148497258",
   abaCopySenderId: process.env.ABA_COPY_SENDER_ID || "787981749",
   abaOrderChatId: process.env.ABA_ORDER_CHAT_ID || "-1004370756195",
   abaAdminChatId: process.env.ABA_ADMIN_CHAT_ID || "787981749",

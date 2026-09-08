@@ -1,4 +1,4 @@
-import { Api, TelegramClient } from "telegram";
+import { TelegramClient } from "telegram";
 import { EditedMessage, type EditedMessageEvent } from "telegram/events/EditedMessage.js";
 import { NewMessage, type NewMessageEvent } from "telegram/events/NewMessage.js";
 import { StringSession } from "telegram/sessions/index.js";
@@ -13,7 +13,7 @@ const paymentPattern = /^\$(\d+(?:\.\d{1,2})?) paid by (.+?) \((\*\d+)\) on ([A-
 // replace this listener with an Express callback_url route using merchant_ref.
 
 export function parseAbaPayment(text: string, now = new Date()): ParsedPayment | null {
-  const match = text.trim().match(paymentPattern);
+  const match = text.replace(/\s+/g, " ").trim().match(paymentPattern);
   if (!match) return null;
   const paidAt = new Date(`${match[4]} ${now.getFullYear()}`);
   if (Number.isNaN(paidAt.getTime())) return null;
@@ -29,17 +29,6 @@ function messageChatId(message: CustomMessage) {
   if (!raw) return "";
   if (raw.startsWith("-100") || raw.startsWith("-")) return raw;
   return `-100${raw}`;
-}
-
-async function isAbaPaymentBotMessage(message: CustomMessage) {
-  const sender = await message.getSender();
-  const expectedUsername = env.abaPaymentBotUsername.replace(/^@/, "").toLowerCase();
-  const isBot = sender instanceof Api.User && Boolean(sender.bot);
-  const username = sender instanceof Api.User ? sender.username?.toLowerCase() : undefined;
-  if (isBot && username !== expectedUsername) {
-    console.warn(`Ignoring ABA payment bot ${username || "without username"}; expected ${expectedUsername}.`);
-  }
-  return isBot && username === expectedUsername;
 }
 
 export async function sendBotMessage(chatId: string, text: string) {
@@ -103,19 +92,41 @@ export async function startAbaListener() {
   const client = new TelegramClient(new StringSession(env.abaSession), env.abaApiId, env.abaApiHash, { connectionRetries: 5 });
   await client.connect();
   if (!(await client.checkAuthorization())) throw new Error("ABA GramJS session is not authorized. Run login-once.");
+  const copiedTransactions = new Set<string>();
+  const copyPaymentMessage = async (message: CustomMessage) => {
+    if (message.out) return;
+    const paymentText = message.message.replace(/\s+/g, " ").trim();
+    const payment = parseAbaPayment(paymentText);
+    if (!payment || copiedTransactions.has(payment.trxId)) return;
+    copiedTransactions.add(payment.trxId);
+    console.log(`Detected ABA payment ${payment.trxId}; copying it into the notification chat.`);
+    await client.sendMessage(env.abaNotificationChatId, { message: paymentText });
+    console.log("Copied ABA payment message into the notification chat for bot verification.");
+  };
   const handler = async (event: NewMessageEvent | EditedMessageEvent) => {
     try {
       const message = event.message as unknown as CustomMessage;
       if (messageChatId(message) !== configuredChatId(env.abaNotificationChatId)) return;
-      if (!(await isAbaPaymentBotMessage(message))) return;
-      await client.sendMessage(env.abaNotificationChatId, { message: (message.message || "").trim() });
-      console.log("Copied ABA payment message into the notification chat for bot verification.");
+      await copyPaymentMessage(message);
     } catch (error) {
       console.error("ABA payment message copy failed:", error);
     }
   };
   client.addEventHandler(handler, new NewMessage({}));
   client.addEventHandler(handler, new EditedMessage({}));
+  const recentMessages = await client.getMessages(env.abaNotificationChatId, { limit: 20 });
+  for (const message of recentMessages) {
+    const payment = parseAbaPayment(message.message || "");
+    if (payment) copiedTransactions.add(payment.trxId);
+  }
+  const scanTimer = setInterval(async () => {
+    try {
+      const recent = await client.getMessages(env.abaNotificationChatId, { limit: 20 });
+      for (const message of recent) await copyPaymentMessage(message as unknown as CustomMessage);
+    } catch (error) {
+      console.error("ABA notification scan failed:", error);
+    }
+  }, 5000);
   console.log(`ABA listener connected for ${env.abaNotificationChatId}`);
-  return async () => { client.removeEventHandler(handler, new NewMessage({})); client.removeEventHandler(handler, new EditedMessage({})); await client.disconnect(); };
+  return async () => { clearInterval(scanTimer); client.removeEventHandler(handler, new NewMessage({})); client.removeEventHandler(handler, new EditedMessage({})); await client.disconnect(); };
 }

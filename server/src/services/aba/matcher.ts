@@ -50,9 +50,11 @@ export function matchPayment(
   const scored = eligible
     .map((order) => ({ ...order, similarity: compareTwoStrings(normalizeName(payment.payerName), normalizeName(order.customerName)) }))
     .filter((order) => order.similarity >= threshold)
-    .sort((left, right) => right.similarity - left.similarity);
+    .sort((left, right) => right.similarity - left.similarity || new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
   if (!scored.length) return { kind: "no-match", reason: "No pending order has a sufficiently similar customer name." };
+  const exactName = normalizeName(payment.payerName) === normalizeName(scored[0].customerName);
+  if (exactName) return { kind: "match", order: scored[0], similarity: scored[0].similarity };
   if (scored.length > 1 && scored[0].similarity - scored[1].similarity < 0.05) return { kind: "flagged", candidates: scored };
   return { kind: "match", order: scored[0], similarity: scored[0].similarity };
 }

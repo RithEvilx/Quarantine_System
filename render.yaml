@@ -30,6 +30,8 @@ services:
         value: "-1003709094404"
       - key: ABA_PAYMENT_BOT_USERNAME
         value: "PayWayByABA_bot"
+      - key: ABA_PAYMENT_BOT_ID
+        value: "1148497258"
       - key: ABA_COPY_SENDER_ID
         value: "787981749"
       - key: ABA_ORDER_CHAT_ID

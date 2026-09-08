@@ -309,11 +309,13 @@ const CartSection = () => {
                   <Input
                     type="text"
                     placeholder="Please enter your name*"
+                    textTransform="uppercase"
                     paddingInline="0.75rem"
                     rounded="0.5rem"
                     bgColor="theme.bg"
                     {...register("customerName", {
                       required: "Please enter your name",
+                      setValueAs: (value: string) => value.trim().toUpperCase(),
                     })}
                     _focus={{
                       border: "1px solid",
