@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Text,
@@ -12,15 +12,16 @@ import {
   HStack,
   VStack,
   Heading,
+  Link,
   RadioCard,
   IconButton,
 } from "@chakra-ui/react";
 // Icons
 import { LuMinus, LuPlus } from "react-icons/lu";
 // Constant
-import { fallBackImage } from "@/app/configs/app";
+import { fallBackImage, KHQR_QR_IMAGE } from "@/app/configs/app";
 // Hook
-import useCreateOrder from "@/features/hooks/telegram";
+import useCreateOrder, { useOrderPaymentStatus } from "@/features/hooks/telegram";
 import { useCart, useClearCart, useDeleteCartItem, useUpdateCartItem } from "@/features/hooks/cart";
 
 type PaymentMethod = "cod" | "khqr";
@@ -49,6 +50,9 @@ const CartSection = () => {
   const { mutate: deleteCartItem } = useDeleteCartItem();
   const { mutateAsync: clearCart } = useClearCart();
   const [updatingItem, setUpdatingItem] = useState<{ id: number; action: CartUpdateAction } | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [pendingOrderNumber, setPendingOrderNumber] = useState<string | null>(null);
+  const handledPaymentOrder = useRef<string | null>(null);
 
   const {
     register,
@@ -64,6 +68,11 @@ const CartSection = () => {
     },
   });
 
+  const customerName = useWatch({ control, name: "customerName" }) || "";
+  const paymentMethod = useWatch({ control, name: "paymentMethod" });
+  const { data: paymentStatus } = useOrderPaymentStatus(pendingOrderNumber);
+  const paymentComplete = paymentStatus?.body?.paymentStatus === "PAID";
+
   const cartItems: CartItem[] = (cart?.items ?? []).map((item) => ({
     id: item.productId,
     name: item.name,
@@ -78,18 +87,36 @@ const CartSection = () => {
 
   //! Send Telegram Message
   const { mutate: createOrder, isPending } = useCreateOrder({
-    onSuccess: async () => {
-      await clearCart();
-      reset();
+    onSuccess: (response) => {
+      const order = (response as { body?: { orderNumber?: string; paymentMethod?: string } }).body;
+      const orderNumber = order?.orderNumber;
+      if (orderNumber) {
+        setPendingOrderNumber(orderNumber);
+        setQrOpen(true);
+      } else if (order?.paymentMethod !== "khqr") {
+        void clearCart();
+        reset();
+      }
     },
     onError: (error) => {
       console.error("Order error:", error);
     },
   });
 
+  useEffect(() => {
+    if (!pendingOrderNumber || !paymentComplete || handledPaymentOrder.current === pendingOrderNumber) return;
+    handledPaymentOrder.current = pendingOrderNumber;
+    void clearCart().then(() => {
+      setQrOpen(false);
+      setPendingOrderNumber(null);
+      reset();
+    });
+  }, [clearCart, paymentComplete, pendingOrderNumber, reset]);
+
   //! Handle Submit
   const onHandleSubmit = (data: CartFormValues) => {
     if (!cart?.cartId || cartItems.length === 0) return;
+    if (data.paymentMethod === "khqr" && !data.customerName.trim()) return;
     createOrder({
       cartId: cart?.cartId ?? "",
       customerName: data.customerName,
@@ -264,6 +291,13 @@ const CartSection = () => {
                             </RadioCard.Item>
                           ))}
                         </HStack>
+                        {field.value === "khqr" && (
+                          <VStack width="full" gap={2} paddingTop={2}>
+                            <Text fontSize="sm" textAlign="center" color="gray.400">
+                              Continue to open the QR code and pay ${grandTotal.toFixed(2)}. Payment confirmation may take a moment.
+                            </Text>
+                          </VStack>
+                        )}
                       </Stack>
                     </RadioCard.Root>
                   )}
@@ -311,13 +345,63 @@ const CartSection = () => {
               rounded="full"
               bgColor="theme.primary"
               loading={isPending}
-              disabled={isPending || cartItems.length === 0}
+              disabled={isPending || cartItems.length === 0 || Boolean(pendingOrderNumber) || paymentComplete || (paymentMethod === "khqr" && !customerName.trim())}
             >
-              {t("Continue Payment")}
+              {paymentComplete ? "Payment confirmed" : pendingOrderNumber ? "Waiting for payment" : t("Continue Payment")}
             </Button>
           </VStack>
         </VStack>
       </Box>
+      {qrOpen && (
+        <Box
+          role="dialog"
+          aria-modal="true"
+          aria-label="KHQR payment code"
+          position="fixed"
+          inset="0"
+          zIndex={1000}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          padding="1rem"
+          bg="rgba(0, 0, 0, 0.7)"
+          onClick={() => setQrOpen(false)}
+        >
+          <VStack
+            gap={4}
+            padding="1rem"
+            rounded="xl"
+            bgColor="theme.bg"
+            maxWidth="min(92vw, 420px)"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Image
+              src={KHQR_QR_IMAGE}
+              alt="ABA KHQR payment code"
+              width="full"
+              maxHeight="70vh"
+              objectFit="contain"
+              rounded="md"
+            />
+            <Text fontWeight="semibold">Scan to pay ${grandTotal.toFixed(2)}</Text>
+            <Text fontSize="sm" textAlign="center" color="gray.400">
+              Waiting for ABA payment verification...
+            </Text>
+            <Link
+              href="https://link.payway.com.kh/ABAPAYar518612i"
+              target="_blank"
+              rel="noopener noreferrer"
+              color="theme.primary"
+              textDecoration="underline"
+            >
+              Pay with ABA PayWay link
+            </Link>
+            <Button type="button" width="full" onClick={() => setQrOpen(false)}>
+              Close
+            </Button>
+          </VStack>
+        </Box>
+      )}
     </Stack>
   );
 };
@@ -328,10 +412,11 @@ const items = [
   {
     value: "cod" as const,
     title: "Cash on delivery",
+    disabled: false,
   },
   {
     value: "khqr" as const,
-    title: "KHQR (Coming soon)",
-    disabled: true,
+    title: "KHQR",
+    disabled: false,
   },
 ];
