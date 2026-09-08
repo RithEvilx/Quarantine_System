@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   Text,
@@ -15,10 +16,83 @@ import {
 // Icons
 import { LuMinus, LuPlus } from "react-icons/lu";
 // Constant
-import { fallBackImage } from "@/app/configs/app";
+import { CHAT_ID, fallBackImage } from "@/app/configs/app";
+// Hook
+import useSendTelegramMessage from "@/features/hooks/telegram";
+
+type PaymentMethod = "cod" | "khqr";
+
+type CartFormValues = {
+  customerName: string;
+  paymentMethod: PaymentMethod;
+};
+
+type CartItem = {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+};
 
 const CartSection = () => {
   const { t } = useTranslation();
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CartFormValues>({
+    defaultValues: {
+      customerName: "",
+      paymentMethod: "cod",
+    },
+  });
+
+  //! Temporary cart data for demo
+  const cartItems: CartItem[] = Array.from({ length: 10 }).map((_, index) => ({
+    id: index + 1,
+    name: "Vital (500ml)",
+    price: 0.25,
+    quantity: 1,
+  }));
+
+  const grandTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  //! Send Telegram Message
+  const { mutate: sendTelegramMessage, isPending } = useSendTelegramMessage({
+    onSuccess: () => {
+      console.log("Telegram message sent!");
+    },
+    onError: (error) => {
+      console.error("Telegram error:", error);
+    },
+  });
+
+  //! Handle Submit
+  const onHandleSubmit = (data: CartFormValues) => {
+    const items = cartItems
+      .map((item) => `• ${item.name} × ${item.quantity} — $${(item.price * item.quantity).toFixed(2)}`)
+      .join("\n");
+
+    const paymentMethod = data.paymentMethod === "cod" ? "Cash on delivery" : "KHQR";
+
+    const message = `🛒 NEW ORDER
+
+👤 Customer: ${data.customerName}
+
+📦 Items:
+${items}
+
+💰 Total: $${grandTotal.toFixed(2)}
+
+💳 Payment: ${paymentMethod}`;
+
+    sendTelegramMessage({
+      chatId: CHAT_ID,
+      message,
+    });
+  };
 
   return (
     <Stack
@@ -31,129 +105,178 @@ const CartSection = () => {
       gap={{ base: 3, md: 4 }}
     >
       <Heading>{t("Current Order")}</Heading>
-      <VStack justifyContent="space-between" height="full">
-        {/* List Order */}
-        <VStack
-          width="full"
-          height={{ md: "calc(100dvh - 370px)", lg: "calc(100dvh - 350px)" }}
-          gap={3}
-          alignItems="flex-start"
-          overflow="auto"
-        >
-          {Array.from({ length: 10 }).map((_, index) => (
-            <HStack
-              width="full"
-              flexShrink="0"
-              rounded="xl"
-              gap={0}
-              overflow="hidden"
-              key={index}
-              border="1px solid"
-              borderColor="theme.borderSubtle"
-            >
-              {/* Image */}
-              <Box boxSize="80px" flexShrink={0}>
-                <Image
-                  src={fallBackImage}
-                  alt="testing image"
-                  loading="lazy"
-                  width="100%"
-                  height="100%"
-                  objectFit="cover"
-                  rounded="md"
-                />
-              </Box>
-              {/* Content */}
-              <VStack
-                width="full"
-                height="full"
-                alignItems="flex-start"
-                justifyContent="space-between"
-                padding="0.15rem 0.5rem 0.45rem"
-              >
-                <Text width="full" lineClamp={2} lineHeight={1.25}>
-                  Vital (500ml)
-                </Text>
-                <HStack width="full" alignItems="flex-end" justifyContent="space-between">
-                  <Text fontWeight="semibold" color="theme.error" lineHeight={1.25}>
-                    $0.25
-                  </Text>
-                  <HStack gap={1}>
-                    <IconButton size="2xs" rounded="full" bgColor="theme.primary">
-                      <LuMinus />
-                    </IconButton>
-                    <Text width="30px" textAlign="center">
-                      1
-                    </Text>
-                    <IconButton size="2xs" rounded="full" bgColor="theme.primary">
-                      <LuPlus />
-                    </IconButton>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </HStack>
-          ))}
-        </VStack>
-        <VStack width="full" gap={4}>
-          {/* Customer Detail + Grand Total */}
+
+      {/* Form */}
+      <Box as="form" onSubmit={handleSubmit(onHandleSubmit)} height="full">
+        <VStack justifyContent="space-between" height="full">
+          {/* List Order */}
           <VStack
-            bg="pink"
             width="full"
+            height={{
+              md: "calc(100dvh - 370px)",
+              lg: "calc(100dvh - 350px)",
+            }}
+            gap={3}
             alignItems="flex-start"
-            bgColor="theme.bgSubtle"
-            padding="0.75rem 1rem"
-            rounded="xl"
+            overflow="auto"
           >
-            {/* Customer Detail */}
-            <VStack width="full" gap={{ base: 3, lg: 4 }}>
-              {/* Way to Pay */}
-              <RadioCard.Root defaultValue="next" width="full">
-                <Stack direction={{ base: "column", lg: "row" }} width="full" alignItems={{ lg: "flex-end" }}>
-                  <RadioCard.Label fontWeight="semibold">{t("Choose way to pay")}:</RadioCard.Label>
-                  <HStack align="stretch">
-                    {items.map((item) => (
-                      <RadioCard.Item
-                        key={item.value}
-                        value={item.value}
-                        cursor="pointer"
-                        bgColor="theme.bg"
-                        _checked={{ border: "1px solid", borderColor: "theme.borderSubtle" }}
-                      >
-                        <RadioCard.ItemHiddenInput />
-                        <RadioCard.ItemControl>
-                          <RadioCard.ItemText padding="0.15rem 0.5rem" fontSize="sm" whiteSpace="nowrap">
-                            {item.title}
-                          </RadioCard.ItemText>
-                        </RadioCard.ItemControl>
-                      </RadioCard.Item>
-                    ))}
+            {cartItems.map((item) => (
+              <HStack
+                width="full"
+                flexShrink="0"
+                rounded="xl"
+                gap={0}
+                overflow="hidden"
+                key={item.id}
+                border="1px solid"
+                borderColor="theme.borderSubtle"
+              >
+                {/* Image */}
+                <Box boxSize="80px" flexShrink={0}>
+                  <Image
+                    src={fallBackImage}
+                    alt={item.name}
+                    loading="lazy"
+                    width="100%"
+                    height="100%"
+                    objectFit="cover"
+                    rounded="md"
+                  />
+                </Box>
+
+                {/* Content */}
+                <VStack
+                  width="full"
+                  height="full"
+                  alignItems="flex-start"
+                  justifyContent="space-between"
+                  padding="0.15rem 0.5rem 0.45rem"
+                >
+                  <Text width="full" lineClamp={2} lineHeight={1.25}>
+                    {item.name}
+                  </Text>
+
+                  <HStack width="full" alignItems="flex-end" justifyContent="space-between">
+                    <Text fontWeight="semibold" color="theme.error" lineHeight={1.25}>
+                      ${item.price.toFixed(2)}
+                    </Text>
+
+                    <HStack gap={1}>
+                      <IconButton type="button" size="2xs" rounded="full" bgColor="theme.primary">
+                        <LuMinus />
+                      </IconButton>
+
+                      <Text width="30px" textAlign="center">
+                        {item.quantity}
+                      </Text>
+
+                      <IconButton type="button" size="2xs" rounded="full" bgColor="theme.primary">
+                        <LuPlus />
+                      </IconButton>
+                    </HStack>
                   </HStack>
-                </Stack>
-              </RadioCard.Root>
-              {/* Customer Name  */}
-              <Input
-                type="text"
-                placeholder="Please enter your name*"
-                paddingInline="0.75rem"
-                rounded="0.5rem"
-                bgColor="theme.bg"
-                _focus={{ border: "1px solid", borderColor: "theme.borderSubtle" }}
-              />
-            </VStack>
-            <Box border="1px solid" borderColor="theme.border" width="full" marginBlock="0.5rem"></Box>
-            {/* Grand Total */}
-            <HStack width="full" justifyContent="space-between" color="theme.text" fontWeight="semibold">
-              <Text>{t("Total")}</Text>
-              <Text>$10.96</Text>
-            </HStack>
+                </VStack>
+              </HStack>
+            ))}
           </VStack>
 
-          {/* Payment Button */}
-          <Button width="full" rounded="full" bgColor="theme.primary">
-            {t("Continue Payment")}
-          </Button>
+          <VStack width="full" gap={4}>
+            {/* Customer Detail + Grand Total */}
+            <VStack width="full" alignItems="flex-start" bgColor="theme.bgSubtle" padding="0.75rem 1rem" rounded="xl">
+              {/* Customer Detail */}
+              <VStack width="full" gap={{ base: 3, lg: 4 }}>
+                {/* Way to Pay */}
+                <Controller
+                  name="paymentMethod"
+                  control={control}
+                  rules={{
+                    required: "Please choose a payment method",
+                  }}
+                  render={({ field }) => (
+                    <RadioCard.Root
+                      value={field.value}
+                      onValueChange={(details) => field.onChange(details.value)}
+                      width="full"
+                    >
+                      <Stack
+                        direction={{
+                          base: "column",
+                          lg: "row",
+                        }}
+                        width="full"
+                        alignItems={{
+                          lg: "flex-end",
+                        }}
+                      >
+                        <RadioCard.Label fontWeight="semibold">{t("Choose way to pay")}:</RadioCard.Label>
+
+                        <HStack align="stretch">
+                          {items.map((item) => (
+                            <RadioCard.Item
+                              key={item.value}
+                              value={item.value}
+                              cursor="pointer"
+                              bgColor="theme.bg"
+                              _checked={{
+                                border: "1px solid",
+                                borderColor: "theme.borderSubtle",
+                              }}
+                            >
+                              <RadioCard.ItemHiddenInput />
+
+                              <RadioCard.ItemControl>
+                                <RadioCard.ItemText padding="0.15rem 0.5rem" fontSize="sm" whiteSpace="nowrap">
+                                  {item.title}
+                                </RadioCard.ItemText>
+                              </RadioCard.ItemControl>
+                            </RadioCard.Item>
+                          ))}
+                        </HStack>
+                      </Stack>
+                    </RadioCard.Root>
+                  )}
+                />
+
+                {/* Customer Name */}
+                <Input
+                  type="text"
+                  placeholder="Please enter your name*"
+                  paddingInline="0.75rem"
+                  rounded="0.5rem"
+                  bgColor="theme.bg"
+                  {...register("customerName", {
+                    required: "Please enter your name",
+                  })}
+                  _focus={{
+                    border: "1px solid",
+                    borderColor: "theme.borderSubtle",
+                  }}
+                />
+
+                {errors.customerName && (
+                  <Text color="theme.error" fontSize="sm">
+                    {errors.customerName.message}
+                  </Text>
+                )}
+              </VStack>
+
+              <Box border="1px solid" borderColor="theme.border" width="full" marginBlock="0.5rem" />
+
+              {/* Grand Total */}
+              <HStack width="full" justifyContent="space-between" color="theme.text" fontWeight="semibold">
+                <Text>{t("Total")}</Text>
+
+                <Text>${grandTotal.toFixed(2)}</Text>
+              </HStack>
+            </VStack>
+
+            {/* Payment Button */}
+            <Button type="submit" width="full" rounded="full" bgColor="theme.primary" loading={isPending}>
+              {t("Continue Payment")}
+            </Button>
+          </VStack>
         </VStack>
-      </VStack>
+      </Box>
     </Stack>
   );
 };
@@ -161,6 +284,12 @@ const CartSection = () => {
 export default CartSection;
 
 const items = [
-  { value: "cod", title: "Cash on delivery" },
-  { value: "khqr", title: "KHQR" },
+  {
+    value: "cod" as const,
+    title: "Cash on delivery",
+  },
+  {
+    value: "khqr" as const,
+    title: "KHQR",
+  },
 ];
