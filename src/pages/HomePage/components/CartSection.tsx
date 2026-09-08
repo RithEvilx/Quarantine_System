@@ -1,3 +1,4 @@
+import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -6,6 +7,7 @@ import {
   Image,
   Input,
   Stack,
+  Field,
   Button,
   HStack,
   VStack,
@@ -43,6 +45,7 @@ const CartSection = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<CartFormValues>({
+    mode: "onChange",
     defaultValues: {
       customerName: "",
       paymentMethod: "cod",
@@ -71,22 +74,43 @@ const CartSection = () => {
 
   //! Handle Submit
   const onHandleSubmit = (data: CartFormValues) => {
+    const now = moment();
+
+    const orderId = `ORD-${now.format("YYYYMMDD-HHmmss")}`;
+    const date = now.format("DD/MM/YYYY");
+    const time = now.format("hh:mm:ss A");
+
     const items = cartItems
-      .map((item) => `• ${item.name} × ${item.quantity} — $${(item.price * item.quantity).toFixed(2)}`)
-      .join("\n");
+      .map((item) => {
+        const subtotal = item.price * item.quantity;
+
+        return `• ${item.name}
+  Qty: ${item.quantity} × $${item.price.toFixed(2)}
+  Subtotal: $${subtotal.toFixed(2)}`;
+      })
+      .join("\n\n");
 
     const paymentMethod = data.paymentMethod === "cod" ? "Cash on delivery" : "KHQR";
 
     const message = `🛒 NEW ORDER
+━━━━━━━━━━━━━━━━━━
+
+🆔 Order ID: ${orderId}
+
+📅 Date: ${date}
+🕐 Time: ${time}
 
 👤 Customer: ${data.customerName}
+💳 Payment: ${paymentMethod}
 
-📦 Items:
+📦 ITEMS
 ${items}
 
-💰 Total: $${grandTotal.toFixed(2)}
+━━━━━━━━━━━━━━━━━━
+💰 TOTAL: $${grandTotal.toFixed(2)}
 
-💳 Payment: ${paymentMethod}`;
+📌 Status: NEW
+━━━━━━━━━━━━━━━━━━`;
 
     sendTelegramMessage({
       chatId: CHAT_ID,
@@ -238,26 +262,27 @@ ${items}
                 />
 
                 {/* Customer Name */}
-                <Input
-                  type="text"
-                  placeholder="Please enter your name*"
-                  paddingInline="0.75rem"
-                  rounded="0.5rem"
-                  bgColor="theme.bg"
-                  {...register("customerName", {
-                    required: "Please enter your name",
-                  })}
-                  _focus={{
-                    border: "1px solid",
-                    borderColor: "theme.borderSubtle",
-                  }}
-                />
-
-                {errors.customerName && (
-                  <Text color="theme.error" fontSize="sm">
-                    {errors.customerName.message}
-                  </Text>
-                )}
+                <Field.Root invalid={!!errors.customerName}>
+                  <Input
+                    type="text"
+                    placeholder="Please enter your name*"
+                    paddingInline="0.75rem"
+                    rounded="0.5rem"
+                    bgColor="theme.bg"
+                    {...register("customerName", {
+                      required: "Please enter your name",
+                    })}
+                    _focus={{
+                      border: "1px solid",
+                      borderColor: "theme.borderSubtle",
+                    }}
+                  />
+                  {errors.customerName && (
+                    <Field.ErrorText color="theme.error" fontSize="sm">
+                      {errors.customerName.message}
+                    </Field.ErrorText>
+                  )}
+                </Field.Root>
               </VStack>
 
               <Box border="1px solid" borderColor="theme.border" width="full" marginBlock="0.5rem" />
