@@ -90,10 +90,10 @@ const CartSection = () => {
     onSuccess: (response) => {
       const order = (response as { body?: { orderNumber?: string; paymentMethod?: string } }).body;
       const orderNumber = order?.orderNumber;
-      if (orderNumber) {
+      if (order?.paymentMethod === "khqr" && orderNumber) {
         setPendingOrderNumber(orderNumber);
         setQrOpen(true);
-      } else if (order?.paymentMethod !== "khqr") {
+      } else {
         void clearCart();
         reset();
       }
