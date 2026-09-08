@@ -38,6 +38,7 @@ const ContentSection = () => {
   });
   const { data: categories = [] } = useListCategories();
   const { mutate: addCartItem } = useAddCartItem();
+  const [addingProductId, setAddingProductId] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -123,7 +124,20 @@ const ContentSection = () => {
 
       {/* Filter Section */}
       <HStack gap={2} width="full" alignItems="center">
-        {hasOverflow && <IconButton aria-label="Previous" onClick={() => handleScroll("left")} variant="subtle" rounded="full" disabled={!canScrollLeft} border="1px solid" borderColor="theme.borderSubtle" marginTop={{ base: "0.15rem", md: "0.5rem" }}><LuChevronLeft /></IconButton>}
+        {hasOverflow && (
+          <IconButton
+            aria-label="Previous"
+            onClick={() => handleScroll("left")}
+            variant="subtle"
+            rounded="full"
+            disabled={!canScrollLeft}
+            border="1px solid"
+            borderColor="theme.borderSubtle"
+            marginTop={{ base: "0.15rem", md: "0.5rem" }}
+          >
+            <LuChevronLeft />
+          </IconButton>
+        )}
 
         {/* Filter Section Container */}
         <HStack
@@ -154,12 +168,31 @@ const ContentSection = () => {
           ))}
         </HStack>
 
-        {hasOverflow && <IconButton aria-label="Next" onClick={() => handleScroll("right")} variant="subtle" rounded="full" disabled={!canScrollRight} border="1px solid" borderColor="theme.borderSubtle" marginTop={{ base: "0.15rem", md: "0.5rem" }}><LuChevronRight /></IconButton>}
+        {hasOverflow && (
+          <IconButton
+            aria-label="Next"
+            onClick={() => handleScroll("right")}
+            variant="subtle"
+            rounded="full"
+            disabled={!canScrollRight}
+            border="1px solid"
+            borderColor="theme.borderSubtle"
+            marginTop={{ base: "0.15rem", md: "0.5rem" }}
+          >
+            <LuChevronRight />
+          </IconButton>
+        )}
       </HStack>
 
       {/* List Item Section */}
       <SimpleGrid columns={12} gap={4} height={{ base: "100%", md: "calc(100dvh - 200px)" }} overflow="auto">
-        {!productsLoading && selectedCategoryId !== null && products.body.length === 0 && <GridItem colSpan={12}><Text textAlign="center" padding={8}>No item found for this type.</Text></GridItem>}
+        {!productsLoading && selectedCategoryId !== null && products.body.length === 0 && (
+          <GridItem colSpan={12}>
+            <Text textAlign="center" padding={8}>
+              No item found for this type.
+            </Text>
+          </GridItem>
+        )}
         {products.body.map((product) => (
           <GridItem colSpan={{ base: 12, md: 6, lg: 3 }} key={product.id}>
             <Stack rounded="2xl" bgColor="theme.bg" padding={3} height={{ base: "300px", md: "280px", lg: "310px" }}>
@@ -184,10 +217,26 @@ const ContentSection = () => {
                 <HStack width="full" justifyContent="space-between" alignItems="flex-end">
                   {/* Price */}
                   <Text fontWeight="semibold" color="theme.error">
-                    ${Number(product.priceUsd ?? product.price).toFixed(2)} / ៛{Number(product.priceKhr ?? 0).toLocaleString()}
+                    ៛{Number(product.priceKhr ?? 0).toLocaleString()} / $
+                    {Number(product.priceUsd ?? product.price).toFixed(2)}
                   </Text>
                   {/* Add to Cart */}
-                  <IconButton aria-label={`Add ${product.name} to cart`} onClick={() => addCartItem({ productId: product.id })} bgColor="theme.primary" color="theme.textOnPrimary" rounded="full" size="xs">
+                  <IconButton
+                    aria-label={`Add ${product.name} to cart`}
+                    loading={addingProductId === product.id}
+                    disabled={addingProductId !== null}
+                    onClick={() => {
+                      setAddingProductId(product.id);
+                      addCartItem(
+                        { productId: product.id },
+                        { onSettled: () => setAddingProductId(null) },
+                      );
+                    }}
+                    bgColor="theme.primary"
+                    color="theme.textOnPrimary"
+                    rounded="full"
+                    size="xs"
+                  >
                     <LuPlus />
                   </IconButton>
                 </HStack>

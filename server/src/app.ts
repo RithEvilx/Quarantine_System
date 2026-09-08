@@ -45,7 +45,9 @@ function formatOrderMessage(order: { orderNumber: string; customerName: string; 
 	const time = now.toLocaleTimeString("en-US", { hour12: true });
 	const payment = order.paymentMethod === "cod" ? "Cash on delivery" : "KHQR";
 	const items = order.items.map((item) => `• ${item.quantity} × ${item.name} — $${currency(item.subtotalUsd)} / ៛${currency(item.subtotalKhr, 0)}`).join("\n");
-	return `🛒 NEW ORDER\n━━━━━━━━━━━━━━━━━━\n\n💰 TOTAL: $${currency(order.grandTotalUsd)} / ៛${currency(order.grandTotalKhr, 0)}\n💳 PAYMENT: ${payment}\n💰 Payment status: ${order.paymentStatus || "UNPAID"}\n\n📦 ITEMS\n${items}\n\n🆔 Order ID: ${order.orderNumber}\n👤 Customer: ${order.customerName}\n📅 ${date} at ${time}\n📌 Order status: ${order.status || "NEW"}\n━━━━━━━━━━━━━━━━━━`;
+	const paymentStatus = order.paymentStatus || "UNPAID";
+	const paymentStatusIcon = paymentStatus === "PAID" ? "🟢" : paymentStatus === "CLAIMED" ? "🟡" : "🔴";
+	return `*********************************\n🛒 NEW ORDER\n*********************************\n\n🆔 ${order.orderNumber}\n📅 Date: ${date}\n🕐 Time: ${time}\n\n👤 CUSTOMER: ${order.customerName}\n💳 PAYMENT: ${payment}\n${paymentStatusIcon} ${paymentStatus}\n\n📦 ITEMS\n${items}\n\n**************************\n💰 TOTAL: $${currency(order.grandTotalUsd)} / ៛${currency(order.grandTotalKhr, 0)}\n**************************`;
 }
 
 router.get("/settings/exchange-rate", async (_req, res) => { res.json(success({ usdToKhr: await getExchangeRate() }, "Success")); });

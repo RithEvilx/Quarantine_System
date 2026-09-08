@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useForm, Controller } from "react-hook-form";
+import { useState } from "react";
 import {
   Box,
   Text,
@@ -20,7 +21,7 @@ import { LuMinus, LuPlus } from "react-icons/lu";
 import { fallBackImage } from "@/app/configs/app";
 // Hook
 import useCreateOrder from "@/features/hooks/telegram";
-import { useCart, useDeleteCartItem, useUpdateCartItem } from "@/features/hooks/cart";
+import { useCart, useClearCart, useDeleteCartItem, useUpdateCartItem } from "@/features/hooks/cart";
 
 type PaymentMethod = "cod" | "khqr";
 
@@ -36,18 +37,24 @@ type CartItem = {
   priceUsd: number;
   priceKhr: number;
   quantity: number;
+  image?: string | null;
 };
+
+type CartUpdateAction = "increase" | "decrease";
 
 const CartSection = () => {
   const { t } = useTranslation();
   const { data: cart } = useCart();
   const { mutate: updateCartItem } = useUpdateCartItem();
   const { mutate: deleteCartItem } = useDeleteCartItem();
+  const { mutateAsync: clearCart } = useClearCart();
+  const [updatingItem, setUpdatingItem] = useState<{ id: number; action: CartUpdateAction } | null>(null);
 
   const {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<CartFormValues>({
     mode: "onChange",
@@ -64,14 +71,16 @@ const CartSection = () => {
     priceUsd: item.priceUsd,
     priceKhr: item.priceKhr,
     quantity: item.quantity,
+    image: item.image,
   }));
 
   const grandTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   //! Send Telegram Message
   const { mutate: createOrder, isPending } = useCreateOrder({
-    onSuccess: () => {
-      console.log("Order created successfully.");
+    onSuccess: async () => {
+      await clearCart();
+      reset();
     },
     onError: (error) => {
       console.error("Order error:", error);
@@ -80,6 +89,7 @@ const CartSection = () => {
 
   //! Handle Submit
   const onHandleSubmit = (data: CartFormValues) => {
+    if (!cart?.cartId || cartItems.length === 0) return;
     createOrder({
       cartId: cart?.cartId ?? "",
       customerName: data.customerName,
@@ -107,7 +117,7 @@ const CartSection = () => {
             width="full"
             height={{
               md: "calc(100dvh - 370px)",
-              lg: "calc(100dvh - 350px)",
+              lg: "calc(100dvh - 420px)",
             }}
             gap={3}
             alignItems="flex-start"
@@ -125,15 +135,15 @@ const CartSection = () => {
                 borderColor="theme.borderSubtle"
               >
                 {/* Image */}
-                <Box boxSize="80px" flexShrink={0}>
+                <Box width="100px" height="75px" flexShrink={0}>
                   <Image
-                    src={fallBackImage}
+                    src={item.image || fallBackImage}
                     alt={item.name}
                     loading="lazy"
                     width="100%"
                     height="100%"
                     objectFit="cover"
-                    rounded="md"
+                    roundedStart="md"
                   />
                 </Box>
 
@@ -143,7 +153,7 @@ const CartSection = () => {
                   height="full"
                   alignItems="flex-start"
                   justifyContent="space-between"
-                  padding="0.15rem 0.5rem 0.45rem"
+                  padding="0.5rem 0.75rem"
                 >
                   <Text width="full" lineClamp={2} lineHeight={1.25}>
                     {item.name}
@@ -159,10 +169,19 @@ const CartSection = () => {
                         type="button"
                         size="2xs"
                         rounded="full"
+                        loading={updatingItem?.id === item.id && updatingItem.action === "decrease"}
+                        disabled={updatingItem !== null}
                         bgColor="theme.primary"
                         onClick={() => {
-                          if (item.quantity <= 1) deleteCartItem(item.id);
-                          else updateCartItem({ productId: item.id, quantity: item.quantity - 1 });
+                          setUpdatingItem({ id: item.id, action: "decrease" });
+                          if (item.quantity <= 1) {
+                            deleteCartItem(item.id, { onSettled: () => setUpdatingItem(null) });
+                          } else {
+                            updateCartItem(
+                              { productId: item.id, quantity: item.quantity - 1 },
+                              { onSettled: () => setUpdatingItem(null) },
+                            );
+                          }
                         }}
                       >
                         <LuMinus />
@@ -176,8 +195,16 @@ const CartSection = () => {
                         type="button"
                         size="2xs"
                         rounded="full"
+                        loading={updatingItem?.id === item.id && updatingItem.action === "increase"}
+                        disabled={updatingItem !== null}
                         bgColor="theme.primary"
-                        onClick={() => updateCartItem({ productId: item.id, quantity: item.quantity + 1 })}
+                        onClick={() => {
+                          setUpdatingItem({ id: item.id, action: "increase" });
+                          updateCartItem(
+                            { productId: item.id, quantity: item.quantity + 1 },
+                            { onSettled: () => setUpdatingItem(null) },
+                          );
+                        }}
                       >
                         <LuPlus />
                       </IconButton>
@@ -206,16 +233,7 @@ const CartSection = () => {
                       onValueChange={(details) => field.onChange(details.value)}
                       width="full"
                     >
-                      <Stack
-                        direction={{
-                          base: "column",
-                          lg: "row",
-                        }}
-                        width="full"
-                        alignItems={{
-                          lg: "flex-end",
-                        }}
-                      >
+                      <Stack width="full">
                         <RadioCard.Label fontWeight="semibold">{t("Choose way to pay")}:</RadioCard.Label>
 
                         <HStack align="stretch">
@@ -234,7 +252,12 @@ const CartSection = () => {
                               <RadioCard.ItemHiddenInput />
 
                               <RadioCard.ItemControl>
-                                <RadioCard.ItemText padding="0.15rem 0.5rem" fontSize="sm" whiteSpace="nowrap">
+                                <RadioCard.ItemText
+                                  padding="0.25rem 0.5rem"
+                                  fontSize="sm"
+                                  whiteSpace="nowrap"
+                                  textAlign="center"
+                                >
                                   {item.title}
                                 </RadioCard.ItemText>
                               </RadioCard.ItemControl>
@@ -248,6 +271,7 @@ const CartSection = () => {
 
                 {/* Customer Name */}
                 <Field.Root invalid={!!errors.customerName}>
+                  <Field.Label fontWeight="semibold">Your ABA's account name</Field.Label>
                   <Input
                     type="text"
                     placeholder="Please enter your name*"
@@ -281,7 +305,14 @@ const CartSection = () => {
             </VStack>
 
             {/* Payment Button */}
-            <Button type="submit" width="full" rounded="full" bgColor="theme.primary" loading={isPending}>
+            <Button
+              type="submit"
+              width="full"
+              rounded="full"
+              bgColor="theme.primary"
+              loading={isPending}
+              disabled={isPending || cartItems.length === 0}
+            >
               {t("Continue Payment")}
             </Button>
           </VStack>
