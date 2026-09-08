@@ -1,0 +1,3 @@
+import { Schema, model } from "mongoose";
+const cartSchema = new Schema({ cartId: { type: String, required: true, unique: true, index: true }, items: [{ productId: { type: Number, required: true }, quantity: { type: Number, required: true, min: 1 } }], status: { type: String, default: "OPEN" }, expiresAt: { type: Date, default: () => new Date(Date.now() + 1000 * 60 * 60 * 24 * 30) } }, { timestamps: true });
+export const Cart = model("Cart", cartSchema);

@@ -1,0 +1,3 @@
+import { Schema, model } from "mongoose";
+const categorySchema = new Schema({ id: { type: Number, unique: true, index: true }, name: { type: String, required: true }, slug: { type: String, required: true, unique: true, index: true }, type: String, image: String, blurhash: String, tags: [String], isActive: { type: Boolean, default: true, index: true } }, { timestamps: true });
+export const Category = model("Category", categorySchema);

@@ -1,0 +1,3 @@
+import { Schema, model } from "mongoose";
+const orderSchema = new Schema({ id: { type: Number, unique: true, index: true }, orderNumber: { type: String, unique: true, index: true }, customerName: String, customerPhone: String, deliveryAddress: String, paymentMethod: String, paymentStatus: { type: String, default: "UNPAID", index: true }, paidAt: Date, paymentReference: String, items: [{ productId: Number, name: String, price: Number, priceUsd: Number, priceKhr: Number, quantity: Number, subtotal: Number }], totalQuantity: Number, grandTotal: Number, status: { type: String, default: "NEW", index: true }, telegramMessageId: String, telegramSentAt: Date }, { timestamps: true });
+export const Order = model("Order", orderSchema);
